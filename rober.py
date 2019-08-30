@@ -16,6 +16,7 @@ import VsmData as vsm
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+import matplotlib.lines as lines
 
 
 __version__ = "1.0.0"
@@ -30,7 +31,7 @@ class MainWindow(Wid.QMainWindow):
         #self.sizelabel.setFrameStyle(QFrame.StyledPanel|QFrame.Sunken)
         self.form_widget = FormWidget(self)
         self.setCentralWidget(self.form_widget)
-        self.setGeometry(10, 10, 640, 480)
+        self.setGeometry(10, 10, 640, 640)
         
         
         # Creamos una menubar y una toolbar.
@@ -114,7 +115,10 @@ class FormWidget(Wid.QWidget):
         
         self.xframe = Wid.QFrame()
         xlayout = Wid.QGridLayout()
-        self.graph = PlotCanvas(self, width=4, height=6, dpi=100)
+        
+        #Iniciamos el objeto para plottear los datos.
+        #self.graph = PlotCanvas(self, 3, width=4, height=6, dpi=100)
+        self.graph = PlotCanvas(3, width=4, height=6, dpi=100)
         
         self.label1 = Wid.QLabel('Moment Offset = ?')
         self.label2 = Wid.QLabel('Sample Dimensions = ?')
@@ -142,9 +146,10 @@ class FormWidget(Wid.QWidget):
         openbutton = Wid.QPushButton('Open VSM file...', self)
         openbutton.setToolTip('Open a VSM data file to analyze.')
         openbutton.clicked.connect(self.getFile)
-        # HAY UN ERROR DE NONETYPE ACÁ
-        self.button1.clicked.connect(self.replot1(updateType='momentOffset'))
-        self.button3.clicked.connect(self.replot1(updateType='saturationMag'))
+ 
+        self.button1.clicked.connect(lambda: self.replot1('momentOffset'))
+        self.button3.clicked.connect(lambda: self.replot1('saturationMag'))
+        self.button4.clicked.connect(lambda: self.replot1('coerField'))
 
         
         vsmlayout.addWidget(openbutton)
@@ -168,58 +173,79 @@ class FormWidget(Wid.QWidget):
     def getFile(self):
         name = Wid.QFileDialog.getOpenFileName(self, 'Open XRR File...')
         self.vsminfo.loadFile(name[0])
-        self.graph.updatePlot(self.vsminfo.moment, self.vsminfo.field)
+        self.graph.updatePlot([self.vsminfo.moment, self.vsminfo.field])
         self.xframe.show()
         self.vsminfo.testfunc()
 
-    def replot1(self, updateType=None):
+    def replot1(self, stri):
+        self.updateType = stri
         if len(self.vsminfo.moment) != 0:
-            if updateType == 'momentOffset':
+            if self.updateType == 'momentOffset':
                 self.vsminfo.momentOffset()
-                self.graph.updatePlot(self.vsminfo.field, self.vsminfo.moment)
-            elif updateType == 'saturationMag':
+                self.graph.updatePlot([self.vsminfo.field, self.vsminfo.moment])
+            elif self.updateType == 'saturationMag':
                 self.vsminfo.saturationMag()
-            self.updateLabel(updateType)
+            elif self.updateType == 'coerField':
+                self.fieldpoly, self.newfield, self.hc = self.vsminfo.coerField()
+                self.graph.updatePlot([self.vsminfo.field, self.vsminfo.moment],
+                                      [self.fieldpoly, self.newfield], 
+                                      [(-self.hc, self.hc), (0,0)])
+            self.updateLabel()
         else:
             pass
 
-    def updateLabel(self, updateType=None):
-        if updateType == 'momentOffset':
+    def updateLabel(self):
+        if self.updateType == 'momentOffset':
             self.label1.setText('Moment Offset = %e' % self.vsminfo.offset)
-            # OFFSET IS STUCK AT 0!!!1!
             self.label1.setStyleSheet('color= green')
-        elif updateType == 'saturationMag':
+        elif self.updateType == 'saturationMag':
             self.label3.setText('Saturation Magnetization = %f' %
                                 self.vsminfo.saturationmag)
+        elif self.updateType == 'coerField':
+            self.label4.setText('Coercitive field = %e Oe' % self.hc)
         else:
             pass
     
 ############################################################################# 
         
+        
 class PlotCanvas(FigureCanvas):
 
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-        FigureCanvas.__init__(self, fig)
+    def __init__(self, linenumber, parent=None, width=5, height=4, dpi=100):
+        
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
+        FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
         FigureCanvas.setSizePolicy(self, Wid.QSizePolicy.Expanding,
                                    Wid.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        self.line1, = self.axes.plot([], [], 'ro')
+        
+        self.ldict = {}
+        lcolors = ('magenta', 'red', 'orange', 'purple', 'green')
+        lmarkers = ('o', 'o', 's', 'o', 'o')
+        
+        for i in range(0, linenumber):
+            key = 'line' + str(i)
+            self.ldict[key] = lines.Line2D([], [], marker=lmarkers[i], 
+                                          color=lcolors[i]) 
+
         self.draw()
         self.axes.set_title('Magnetization vs Field')
         self.axes.grid()
         self.axes.set_ylabel('Moment')
         self.axes.set_xlabel('Field')
 
-    def updatePlot(self, datax, datay):
-        self.line1.set_xdata(datax)
-        self.line1.set_ydata(datay)
-        self.axes.set_ylim(-max(datay), max(datay))
-        self.axes.set_xlim(-max(datax), max(datax))
-        self.draw()
-        self.flush_events()
+    def updatePlot(self, *args):
+        for data, key in zip(args, self.ldict):
+            self.ldict[key].set_data(data)
+            #print(self.ldict[key])
+            self.axes.add_line(self.ldict[key])
+            if key == 'line0':
+                self.axes.set_ylim(-max(data[1]), max(data[1]))
+                self.axes.set_xlim(-max(data[0]), max(data[0]))
+        self.fig.canvas.draw() 
+        self.flush_events()        
         
 
 
