@@ -13,6 +13,7 @@ from PyQt5.QtCore import QSize, Qt
 import PyQt5.QtGui as QtGui
 import PyQt5.QtWidgets as Wid
 import VsmData as vsm
+import ReflectData as reflect
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -43,15 +44,25 @@ class MainWindow(Wid.QMainWindow):
         newSample = self.createAction("New Sample", "newsample", None, 
                                       "Create a new Sample file.")
         
+        helpme = self.createAction("About", 'Rober', None, None)
+        
         newSample.triggered.connect(self.saveFile)
+        helpme.triggered.connect(self.helpAbout)
+        helpmenu.addAction(helpme)
         fileMenu.addAction(newSample)
         fileToolbar.addAction(newSample)
         
         ##
+    def helpAbout(self):
+        msg = Wid.QMessageBox.about(self, "About NanoRober",
+                            """<b>NanoRober - Sample Analysis Simplifier</b> 
+                            <p>Version %s (2019) by Agostina Lo Giudice.
+                            (logiudic@tandar.cnea.gov.ar)
+                            <p>This program is distributed under the GNU 
+                            Public License v3.
+                            """ % __version__)
         
-    def createAction(self, text, icon=None, shortcut=None, tip=None, 
-                     checkable=False):
-        
+    def createAction(self, text, icon=None, shortcut=None, tip=None):
         action = Wid.QAction(text, self)
         if icon is not None:
             name = icon + ".png"
@@ -60,8 +71,6 @@ class MainWindow(Wid.QMainWindow):
         if tip is not None:
             action.setToolTip(tip)
             action.setStatusTip(tip)
-        if checkable:
-            action.setCheckable(True)
         return action
     
     def saveFile(self):
@@ -78,6 +87,7 @@ class FormWidget(Wid.QWidget):
     def __init__(self, parent):
         
         self.vsminfo = vsm.VsmData()
+        self.refldat = reflect.Reflect()
         super().__init__(parent)
         self.layout = Wid.QVBoxLayout(self)
         
@@ -145,7 +155,7 @@ class FormWidget(Wid.QWidget):
         
         openbutton = Wid.QPushButton('Open VSM file...', self)
         openbutton.setToolTip('Open a VSM data file to analyze.')
-        openbutton.clicked.connect(self.getFile)
+        openbutton.clicked.connect(self.getFilevsm)
  
         self.button1.clicked.connect(lambda: self.replot1('momentOffset'))
         self.button3.clicked.connect(lambda: self.replot1('saturationMag'))
@@ -159,8 +169,38 @@ class FormWidget(Wid.QWidget):
         # RHEED Widget.
         rheedWidget = Wid.QWidget()
         #rheedlayout = Wid.QVBoxLayout(self)
+        
+        ###################################################### XRR Widget
         xrayWidget = Wid.QWidget()
-        #xraylayout = Wid.QVBoxLayout(self)
+        xraylayout = Wid.QVBoxLayout(self)
+        
+        self.xrframe = Wid.QFrame()
+        xrlayout = Wid.QGridLayout()
+        
+        #Iniciamos el objeto para plottear los datos.
+        #self.graph = PlotCanvas(self, 3, width=4, height=6, dpi=100)
+        self.graphxr = PlotCanvas(3, width=4, height=6, dpi=100)
+
+        self.xrframe.hide()
+        self.xrframe.setLayout(xrlayout)
+        
+        openbuttonxr = Wid.QPushButton('Open XRR file...', self)
+        openbuttonxr.setToolTip('Open a XRR data file to analyze.')
+        openbuttonxr.clicked.connect(self.getFilexrr)
+ 
+#        self.button1.clicked.connect(lambda: self.replot1('momentOffset'))
+#        self.button3.clicked.connect(lambda: self.replot1('saturationMag'))
+#        self.button4.clicked.connect(lambda: self.replot1('coerField'))
+
+        xraylayout.addWidget(openbuttonxr)
+        xraylayout.addWidget(self.xrframe)
+        xrayWidget.setLayout(xraylayout)
+        
+        
+        
+        
+        
+        
         tab = Wid.QTabWidget()
         tab.setParent(self)
         tab.addTab(infoWidget, "Sample &Info")
@@ -170,12 +210,19 @@ class FormWidget(Wid.QWidget):
         self.layout.addWidget(tab)
         self.setLayout(self.layout)
 
-    def getFile(self):
-        name = Wid.QFileDialog.getOpenFileName(self, 'Open XRR File...')
+    def getFilevsm(self):
+        name = Wid.QFileDialog.getOpenFileName(self, 'Open VSM File...')
         self.vsminfo.loadFile(name[0])
         self.graph.updatePlot([self.vsminfo.moment, self.vsminfo.field])
         self.xframe.show()
         self.vsminfo.testfunc()
+            
+    def getFilexrr(self):
+        name = Wid.QFileDialog.getOpenFileName(self, 'Open XRR File...')
+        self.refldat.loadFile(name[0])
+        self.graphxr.updatePlot([self.refldat.x, self.refldat.counts])
+        self.xrframe.show()
+        self.refldat.testReflect()
 
     def replot1(self, stri):
         self.updateType = stri
