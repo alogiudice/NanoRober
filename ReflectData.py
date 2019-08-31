@@ -63,7 +63,6 @@ class Reflect():
         self.counts = list(map(float, counts)) 
         # Generate 2theta list
         self.x = np.linspace(thetastart, thetaend, len(counts))
-        f.close()
         
     def thetacrit(self, maxindex_crop = 1.6):
         # Esta función devuelve el valor del ángulo crítico del sistema, tenien

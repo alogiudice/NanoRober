@@ -127,7 +127,6 @@ class FormWidget(Wid.QWidget):
         xlayout = Wid.QGridLayout()
         
         #Iniciamos el objeto para plottear los datos.
-        #self.graph = PlotCanvas(self, 3, width=4, height=6, dpi=100)
         self.graph = PlotCanvas(3, width=4, height=6, dpi=100)
         
         self.label1 = Wid.QLabel('Moment Offset = ?')
@@ -178,9 +177,9 @@ class FormWidget(Wid.QWidget):
         xrlayout = Wid.QGridLayout()
         
         #Iniciamos el objeto para plottear los datos.
-        #self.graph = PlotCanvas(self, 3, width=4, height=6, dpi=100)
+        
         self.graphxr = PlotCanvas(3, width=4, height=6, dpi=100)
-
+        xrlayout.addWidget(self.graphxr, 0, 0)
         self.xrframe.hide()
         self.xrframe.setLayout(xrlayout)
         
@@ -197,10 +196,6 @@ class FormWidget(Wid.QWidget):
         xrayWidget.setLayout(xraylayout)
         
         
-        
-        
-        
-        
         tab = Wid.QTabWidget()
         tab.setParent(self)
         tab.addTab(infoWidget, "Sample &Info")
@@ -212,23 +207,37 @@ class FormWidget(Wid.QWidget):
 
     def getFilevsm(self):
         name = Wid.QFileDialog.getOpenFileName(self, 'Open VSM File...')
-        self.vsminfo.loadFile(name[0])
-        self.graph.updatePlot([self.vsminfo.moment, self.vsminfo.field])
-        self.xframe.show()
-        self.vsminfo.testfunc()
-            
+        if name is not None:
+            self.vsminfo.loadFile(name[0])
+            xdata = [-max(self.vsminfo.field), max(self.vsminfo.field)]
+            ydata = [-max(self.vsminfo.moment), max(self.vsminfo.moment)]
+            self.graph.limitPlot(xdata, ydata)
+            self.graph.updatePlot([self.vsminfo.moment, self.vsminfo.field])
+            self.xframe.show()
+            self.vsminfo.testfunc()
+        else:
+            pass
+        
     def getFilexrr(self):
         name = Wid.QFileDialog.getOpenFileName(self, 'Open XRR File...')
-        self.refldat.loadFile(name[0])
-        self.graphxr.updatePlot([self.refldat.x, self.refldat.counts])
-        self.xrframe.show()
-        self.refldat.testReflect()
+        if name is not None:
+            self.refldat.loadFile(name[0])
+            self.graphxr.scalePlot('log')
+            self.graphxr.limitPlot([0, max(self.refldat.x)],
+                                   [min(self.refldat.counts), max(self.refldat.counts)])
+            self.graphxr.updatePlot([self.refldat.x, self.refldat.counts])
+            self.xrframe.show()
+            self.refldat.testReflect()
+        else:
+            pass
 
     def replot1(self, stri):
         self.updateType = stri
         if len(self.vsminfo.moment) != 0:
             if self.updateType == 'momentOffset':
                 self.vsminfo.momentOffset()
+                self.graph.limitPlot([-max(self.vsminfo.field), max(self.vsminfo.field)],
+                                     [-max(self.vsminfo.moment), max(self.vsminfo.moment)])
                 self.graph.updatePlot([self.vsminfo.field, self.vsminfo.moment])
             elif self.updateType == 'saturationMag':
                 self.vsminfo.saturationMag()
@@ -269,7 +278,7 @@ class PlotCanvas(FigureCanvas):
         FigureCanvas.updateGeometry(self)
         
         self.ldict = {}
-        lcolors = ('magenta', 'red', 'orange', 'purple', 'green')
+        lcolors = ('blue', 'red', 'orange', 'purple', 'green')
         lmarkers = ('o', 'o', 's', 'o', 'o')
         
         for i in range(0, linenumber):
@@ -283,14 +292,17 @@ class PlotCanvas(FigureCanvas):
         self.axes.set_ylabel('Moment')
         self.axes.set_xlabel('Field')
 
+    def scalePlot(self, scale='linear'):
+        self.axes.set_yscale(scale)
+
+    def limitPlot(self, xvalues, yvalues):
+        self.axes.set_xlim(xvalues)
+        self.axes.set_ylim(yvalues)
+
     def updatePlot(self, *args):
         for data, key in zip(args, self.ldict):
             self.ldict[key].set_data(data)
-            #print(self.ldict[key])
             self.axes.add_line(self.ldict[key])
-            if key == 'line0':
-                self.axes.set_ylim(-max(data[1]), max(data[1]))
-                self.axes.set_xlim(-max(data[0]), max(data[0]))
         self.fig.canvas.draw() 
         self.flush_events()        
         
