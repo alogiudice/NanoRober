@@ -157,6 +157,7 @@ class FormWidget(Wid.QWidget):
         openbutton.clicked.connect(self.getFilevsm)
  
         self.button1.clicked.connect(lambda: self.replot1('momentOffset'))
+        self.button2.clicked.connect(self.openDialog)
         self.button3.clicked.connect(lambda: self.replot1('saturationMag'))
         self.button4.clicked.connect(lambda: self.replot1('coerField'))
 
@@ -207,49 +208,50 @@ class FormWidget(Wid.QWidget):
 
     def getFilevsm(self):
         name = Wid.QFileDialog.getOpenFileName(self, 'Open VSM File...')
-        if name is not None:
-            self.vsminfo.loadFile(name[0])
-            xdata = [-max(self.vsminfo.field), max(self.vsminfo.field)]
-            ydata = [-max(self.vsminfo.moment), max(self.vsminfo.moment)]
-            self.graph.limitPlot(xdata, ydata)
-            self.graph.updatePlot([self.vsminfo.moment, self.vsminfo.field])
-            self.xframe.show()
-            self.vsminfo.testfunc()
-        else:
+        if name is None:
             pass
+        self.vsminfo.loadFile(name[0])
+        self.graph.limitPlot([-max(self.vsminfo.field), max(self.vsminfo.field)],
+                             [-max(self.vsminfo.moment), max(self.vsminfo.moment)])
+        self.graph.getData()
+        self.graph.updatePlot([self.vsminfo.field, self.vsminfo.moment])
+        self.xframe.show()
+        self.vsminfo.testfunc()
         
     def getFilexrr(self):
         name = Wid.QFileDialog.getOpenFileName(self, 'Open XRR File...')
-        if name is not None:
-            self.refldat.loadFile(name[0])
-            self.graphxr.scalePlot('log')
-            self.graphxr.limitPlot([0, max(self.refldat.x)],
-                                   [min(self.refldat.counts), max(self.refldat.counts)])
-            self.graphxr.updatePlot([self.refldat.x, self.refldat.counts])
-            self.xrframe.show()
-            self.refldat.testReflect()
-        else:
+        if name is None:
             pass
+        self.refldat.loadFile(name[0])
+        self.graphxr.scalePlot('log')
+        self.graphxr.limitPlot([0, max(self.refldat.x)],
+                                [min(self.refldat.counts), 
+                                 max(self.refldat.counts)])
+        self.graphxr.updatePlot([self.refldat.x, self.refldat.counts])
+        self.xrframe.show()
+        self.refldat.testReflect()
+
 
     def replot1(self, stri):
         self.updateType = stri
-        if len(self.vsminfo.moment) != 0:
-            if self.updateType == 'momentOffset':
-                self.vsminfo.momentOffset()
-                self.graph.limitPlot([-max(self.vsminfo.field), max(self.vsminfo.field)],
-                                     [-max(self.vsminfo.moment), max(self.vsminfo.moment)])
-                self.graph.updatePlot([self.vsminfo.field, self.vsminfo.moment])
-            elif self.updateType == 'saturationMag':
-                self.vsminfo.saturationMag()
-            elif self.updateType == 'coerField':
-                self.fieldpoly, self.newfield, self.hc = self.vsminfo.coerField()
-                self.graph.updatePlot([self.vsminfo.field, self.vsminfo.moment],
-                                      [self.fieldpoly, self.newfield], 
-                                      [(-self.hc, self.hc), (0,0)])
-            self.updateLabel()
-        else:
+        if len(self.vsminfo.moment) == 0:
             pass
-
+        if self.updateType == 'momentOffset':
+            self.vsminfo.momentOffset()
+            self.graph.limitPlot([-max(self.vsminfo.field), max(self.vsminfo.field)],
+                                 [-max(self.vsminfo.moment), max(self.vsminfo.moment)])
+            self.graph.updatePlot([self.vsminfo.field, self.vsminfo.moment])
+            self.graph.getData()
+        elif self.updateType == 'saturationMag':
+            self.vsminfo.saturationMag()
+        elif self.updateType == 'coerField':
+            self.fieldpoly, self.newfield, self.hc = self.vsminfo.coerField()
+            self.graph.updatePlot([self.vsminfo.field, self.vsminfo.moment],
+                                  [self.fieldpoly, self.newfield], 
+                                  [(-self.hc, self.hc), (0,0)])
+        self.updateLabel()
+        
+        
     def updateLabel(self):
         if self.updateType == 'momentOffset':
             self.label1.setText('Moment Offset = %e' % self.vsminfo.offset)
@@ -261,7 +263,27 @@ class FormWidget(Wid.QWidget):
             self.label4.setText('Coercitive field = %e Oe' % self.hc)
         else:
             pass
-    
+        
+    def openDialog(self):
+       dialog = Wid.QDialog()
+       dialog.setWindowTitle("Set sample size")
+       frame = Wid.QVBoxLayout()
+       
+       text = Wid.QLabel()
+       text.setText('Specify your sample\'s width & height measured in cms.')
+       textx = Wid.QLabel()
+       textx.setText('Width: ')
+       texty = Wid.QLabel()
+       texty.setText('Height: ')
+       b1 = Wid.QPushButton("ok", dialog)
+       b1.move(50,50)
+       frame.addWidget(text)
+       frame.addWidget(textx)
+       frame.addWidget(texty)
+       frame.addWidget(b1)
+       dialog.setLayout(frame)
+       dialog.setWindowModality(Qt.ApplicationModal)
+       dialog.exec_()
 ############################################################################# 
         
         
@@ -271,14 +293,14 @@ class PlotCanvas(FigureCanvas):
         
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
-        FigureCanvas.__init__(self, self.fig)
+        super().__init__(self.fig)
         self.setParent(parent)
         FigureCanvas.setSizePolicy(self, Wid.QSizePolicy.Expanding,
                                    Wid.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         
         self.ldict = {}
-        lcolors = ('blue', 'red', 'orange', 'purple', 'green')
+        lcolors = ('blue', 'red', 'purple', 'orange', 'green')
         lmarkers = ('o', 'o', 's', 'o', 'o')
         
         for i in range(0, linenumber):
@@ -298,6 +320,10 @@ class PlotCanvas(FigureCanvas):
     def limitPlot(self, xvalues, yvalues):
         self.axes.set_xlim(xvalues)
         self.axes.set_ylim(yvalues)
+        
+    def getData(self):
+        for key in self.ldict:
+            print(self.ldict[key].get_data())
 
     def updatePlot(self, *args):
         for data, key in zip(args, self.ldict):
