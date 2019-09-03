@@ -50,7 +50,9 @@ class Reflect():
         thetastart = float(f[match_start1.end():match_start1.end()+6])
         aux_index = match_start1.end() + 6
         match_start2 = pattern4.search(f[aux_index:])
-        thetaend = float(f[aux_index + match_start2.end():aux_index + match_start2.end() + 6])
+        
+        thetaend = float(f[aux_index + match_start2.end():aux_index + 
+                           match_start2.end() + 6])
         
         # Getting the counts list.
         match = pattern1.search(f)
@@ -203,8 +205,3 @@ class Reflect():
                 file.write("%f %f\n" % (x[index], item))
             
 
-
-##############################################################################
- ############################################################################
-  ########################### PROGRAM START ###############################
-#plt.use("TkAgg")

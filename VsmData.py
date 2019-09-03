@@ -19,6 +19,8 @@ class VsmData():
         self.moment = []
         self.offset = 0
         self.saturationmag = 0
+        self.width = 0
+        self.height = 0
 
     def testfunc(self):
         print('VSM module OK!')
@@ -62,21 +64,13 @@ class VsmData():
     # en superficie.
 
     
-    def sample_measure(self, xlength, ylength):
+    def sampleMeasure(self, xlength, ylength):
        #xlength = float(input('Sample width(in cms)? '))
        #ylength = float(input('Sample length(in cms)? '))
        area = xlength * ylength
        for i in range(0, self.datapoints):
            self.moment[i] = self.moment[i] / area
     
-    def plot_vsm(self, fig):
-        # It cannot plot like this. Whyyyyy
-        plt.plot(self.field, self.moment, 'o')
-        plt.xlabel('Field (G)')
-        plt.ylabel('Moment')
-        plt.ylim(-max(self.moment), max(self.moment))
-        plt.grid()
-        plt.show()
 
     def saturationMag(self):
         self.saturationmag = max(self.moment)
