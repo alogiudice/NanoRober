@@ -86,8 +86,7 @@ class VsmData():
         print('Done! :) File output: %s' % outfile)
     
     def coerField(self, points=3):
-        #print("I'll try to calculate the coercitive field of the cycle by 
-        # interpolating with a spline. ")
+
         a = np.argmin(np.absolute(self.moment))
         #polygrd = input("")
         mompoly = np.zeros(2*points)
@@ -106,13 +105,3 @@ class VsmData():
         print("Hc calculado en: %f G." % (hc) )
         newfield = spline(fieldpoly)
         return fieldpoly, newfield, hc
-        
-        #plt.plot(self.field, self.moment, 'o', color='blue', label='M(H)')
-#        plt.plot(fieldpoly, newfield, 'o', color='red', label='Spline')
-#        plt.plot([-hc, hc], [0,0], 'o', color='green', label='Hc')
-#        plt.xlabel('Field (G)')
-#        plt.ylabel('Moment')
-#        plt.legend()
-#        plt.ylim(-max(self.moment), max(self.moment))
-#        plt.grid()
-#        plt.show()

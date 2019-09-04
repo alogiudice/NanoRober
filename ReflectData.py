@@ -4,6 +4,7 @@ from scipy.signal import argrelextrema
 from scipy import stats
 import statsmodels.api as sm
 from math import pow
+from scipy.interpolate import UnivariateSpline
 import re
 
 auto_optim = True
@@ -16,6 +17,10 @@ class Reflect():
         self.counts = []
         self.x = []
         self.lambdax = lambdax
+        self.maxcounts = 0
+        self.maxcounts_i = 0
+        self.thetacritic1 = 0
+        self.thetacritic2 = 0
         
     def testReflect(self):
         print('XRR Module loaded!')
@@ -85,6 +90,24 @@ class Reflect():
         thetacritic = self.x[max_index + 1 + mini]
         
         return thetacritic
+    
+    def thetacritSpline(self, maxindex_crop=1.6):
+        #Esta función saca el theta crítico ajustando la curva con una spline, 
+        # y sacando su cero. Es más precisa que la antigua thetacrit.
+        self.maxcounts = max(self.counts)
+        self.maxcounts_i = self.counts.index(self.maxcounts)
+
+        thetacrit_value = self.maxcounts / 2        
+        
+        maxindex_scan = int(self.maxcounts_i * maxindex_crop)
+        
+        fieldpoly = self.x[self.maxcounts_i + 1:maxindex_scan]
+        scan = self.counts[self.maxcounts_i + 1:maxindex_scan]
+        scan = [(value - thetacrit_value) for value in scan]   
+        spline = UnivariateSpline(fieldpoly, scan)
+        thetacritic = spline.roots()
+        self.thetacritic1 = thetacritic[0]
+              
     
     def smoothcounts(self, fig, fraclowess, x_cutoffindex = 1.705):
         # Esta función grafica los datos sin smoothear, los ya smootheados por 
