@@ -69,7 +69,7 @@ class VsmData():
        #ylength = float(input('Sample length(in cms)? '))
        area = xlength * ylength
        for i in range(0, self.datapoints):
-           self.moment[i] = self.moment[i] / area
+           self.moment[i] = self.moment[i] / area * vol
     
 
     def saturationMag(self):

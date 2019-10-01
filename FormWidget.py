@@ -348,21 +348,21 @@ class FormWidget(Wid.QWidget):
         
         checkico = os.path.join(os.path.dirname(__file__), "check.png")
         pixmap = QPixmap(checkico)
-        self.graphlow.replot1
+        self.replot1('lowess')
         self.layout = Wid.QHBoxLayout()
         self.layout.addWidget(self.graphlow)
-        
         self.layout2 = Wid.QGridLayout()
         #Theta cutoff
         theta_cutoff = Wid.QLabel()
         theta_cutoff.setText('\u03B8 cutoff:')
-        theta_cutoff_line = Wid.QLineEdit()
+        theta_cutoff_line = Wid.QSpinBox()
         theta_cutoff_accept = Wid.QPushButton()
         theta_cutoff_accept.setIcon(QIcon(pixmap))
         #Lowess
         lowess = Wid.QLabel()
         lowess.setText('Lowess frac: ')
-        lowess_line = Wid.QLineEdit()
+        lowess_line = Wid.QSpinBox()
+        lowess_line.setRange(0,2)
         lowess_accept = Wid.QPushButton()
         lowess_accept.setIcon(QIcon(pixmap))
         
@@ -378,10 +378,13 @@ class FormWidget(Wid.QWidget):
         frame1.setFrameShape(Wid.QFrame.HLine)
         frame1.setLineWidth(1)
         self.layout3 = Wid.QVBoxLayout()
-        self.layout3.addWidget(frame1)
+        self.layout3.addWidget(frame1)                                                                                                                                               
         self.layout2.addLayout(self.layout3, 2,0)
         
         self.dialogM.setLayout(self.layout)
         #self.dialogM.setFixedSize(230,170)
         self.dialogM.setWindowModality(Qt.ApplicationModal)
         self.dialogM.exec_()
+        
+        
+        
