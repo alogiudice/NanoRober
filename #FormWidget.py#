@@ -15,7 +15,7 @@ import VsmData as vsm
 import ReflectData as reflect
 import PyPlotCanvas as canvas
 
-class FormWidget(Wid.QWidget, MainWindow):
+class FormWidget(Wid.QWidget):
     
     def __init__(self, parent):
         

@@ -36,11 +36,23 @@ class MainWindow(Wid.QMainWindow):
         menubar1 = self.menuBar()
         fileMenu = menubar1.addMenu('&File')
         editMenu = menubar1.addMenu("Edit")
-        vsmMenu = menubar1.addMenu('VSM data')
+        dataMenu = menubar1.addMenu('Data')
         helpmenu = menubar1.addMenu('&Help')
         newSample = self.createAction("New Sample", "newsample", None, 
                                       "Create a new Sample file.")
-        
+
+
+        # Data menu options
+        self.xrrsubmenu = dataMenu.addMenu("XRR data")
+        self.xrrsubmenu.setDisabled(True)
+        vsmsubmenu = dataMenu.addMenu("VSM data")
+        vsmsubmenu.setDisabled(True)
+
+        # XRR menu
+        changerangestr = "Adjust theta range for smoothing and\n peak finding"
+        xrrchangerange = self.createAction("Change theta working range", None, None,
+                                           changerangestr)
+        self.xrrsubmenu.addAction(xrrchangerange)
         saveplotv = self.createAction("Save VSM plot as...")
         #saveplotv.triggered.connect(self.savePlot())
         

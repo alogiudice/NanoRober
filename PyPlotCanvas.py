@@ -34,9 +34,13 @@ class PlotCanvas(FigureCanvas):
     def scalePlot(self, scale='linear'):
         self.axes.set_yscale(scale)
 
+
     def limitPlot(self, xvalues, yvalues):
-        self.axes.set_xlim(xvalues)
+        # Replot with new scales.
+        self.axes.set_xlim(xvalues)        
         self.axes.set_ylim(yvalues)
+        self.fig.canvas.draw() 
+        self.flush_events()   
         
     def getData(self):
         for key in self.ldict:

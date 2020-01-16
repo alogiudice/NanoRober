@@ -6,15 +6,14 @@
 		<entry>Sample stage=Chi-Phi-x-y-z stage 240 mm; Minimum step size Phi:0.01; Minimum step size Chi:0.01; Minimum step size X:0.01; Minimum step size Y:0.01; Minimum step size Z:0.001</entry>
 		<entry>Diffractometer system=EMPYREAN</entry>
 		<entry>Measurement program=SJC-XRR, Owner=User-1, Creation date=31/01/2019 11:42:27</entry>
-		<entry>Fine Calibration Offset for 2Theta = 0.0096 deg</entry>
-		<entry>Batch program=Santiago BATCH XRR, Owner=User-1, Creation date=26/02/2019 12:20:07</entry>
+		<entry>Fine Calibration Offset for 2Theta = 0.0071 deg</entry>
 	</comment>
 	<sample type="To be analyzed">
 		<id></id>
 		<name></name>
 		<preparedBy></preparedBy>
 	</sample>
-	<xrdMeasurement measurementType="Scan" status="Completed" sampleMode="Reflection">
+	<xrdMeasurement measurementType="Scan" status="Completed" sampleMode="Transmission">
 		<comment>
 			<entry/>
 		</comment>
@@ -50,9 +49,9 @@
 					<l>0</l>
 				</hkl>
 			</monochromator>
-			<mask id="22030007" name="Fixed mask 2 mm">
+			<mask id="22030008" name="Fixed mask 4 mm">
 				<distanceToSample unit="mm">240.00</distanceToSample>
-				<width unit="mm">2.00</width>
+				<width unit="mm">4.00</width>
 			</mask>
 			<divergenceSlit id="22010011" name="Fixed slit 1/32°" xsi:type="fixedDivergenceSlitType">
 				<distanceToSample unit="mm">140.00</distanceToSample>
@@ -66,7 +65,7 @@
 		<diffractedBeamPath>
 			<radius unit="mm">240.00</radius>
 			<antiScatterSlit id="22060009" name="Programmable anti-scatter slit" xsi:type="fixedAntiScatterSlitType">
-				<angle unit="deg">0.5</angle>
+				<angle unit="deg">0.25</angle>
 			</antiScatterSlit>
 			<sollerSlit id="21010002" name="Soller slits 0.04 rad.">
 				<opening unit="rad">0.0400</opening>
@@ -85,8 +84,8 @@
 		</diffractedBeamPath>
 		<scan appendNumber="0" mode="Continuous" scanAxis="2Theta-Omega" status="Completed">
 			<header>
-				<startTimeStamp>2019-02-26T12:25:51+01:00</startTimeStamp>
-				<endTimeStamp>2019-02-26T12:57:53+01:00</endTimeStamp>
+				<startTimeStamp>2019-02-06T10:30:04+01:00</startTimeStamp>
+				<endTimeStamp>2019-02-06T10:54:06+01:00</endTimeStamp>
 				<author>
 					<name>S0010376-A</name>
 				</author>
@@ -102,26 +101,26 @@
 					<endPosition>4.9950</endPosition>
 				</positions>
 				<positions axis="Omega" unit="deg">
-					<startPosition>0.2499</startPosition>
-					<endPosition>2.6449</endPosition>
+					<startPosition>-0.0216</startPosition>
+					<endPosition>2.3734</endPosition>
 				</positions>
 				<positions axis="Phi" unit="deg">
 					<commonPosition>0.00</commonPosition>
 				</positions>
 				<positions axis="Chi" unit="deg">
-					<commonPosition>-0.30</commonPosition>
+					<commonPosition>-0.25</commonPosition>
 				</positions>
 				<positions axis="X" unit="mm">
 					<commonPosition>0.00</commonPosition>
 				</positions>
 				<positions axis="Y" unit="mm">
-					<commonPosition>-22.20</commonPosition>
+					<commonPosition>0.00</commonPosition>
 				</positions>
 				<positions axis="Z" unit="mm">
-					<commonPosition>5.872</commonPosition>
+					<commonPosition>1.515</commonPosition>
 				</positions>
-				<commonCountingTime unit="seconds">3.520</commonCountingTime>
-				<intensities unit="counts">332130 347094 362897 378522 395390 410914 427549 441578 455124 466444 484994 499258 512883 527125 543756 554773 568830 581136 593431 606688 619557 630565 638454 653149 662533 670966 680874 686096 692780 693950 695958 699329 689704 676983 660480 634447 598697 544577 473238 383448 281024 184784 104824 55015 33965 31804 38170 43879 45073 42867 36117 28280 20194 13170 8283 5801 5123 5756 7701 9503 11536 12840 13452 13028 12324 11009 9271 7414 5495 3925 2788 1957 1519 1541 1750 2264 2757 3247 3760 4041 4233 4136 3907 3627 3135 2553 1968 1511 1061 731 518 391 363 465 578 730 942 1080 1228 1389 1359 1351 1274 1182 1050 940 721 606 379 287 168 144 115 120 127 201 240 289 391 432 457 517 537 504 414 386 356 314 271 177 104 89 47 25 27 25 35 84 97 131 135 181 195 171 201 172 183 153 127 103 83 70 56 30 19 14 12 17 13 19 25 36 72 66 64 54 81 82 74 51 50 53 39 39 36 13 11 9 8 14 8 15 12 26 19 18 29 26 24 29 32 35 26 35 14 25 22 12 17 10 18 5 13 13 7 8 19 20 19 13 17 10 19 18 14 19 14 14 16 12 14 10 7 7 10 9 15 7 7 4 11 11 22 22 20 13 7 8 15 10 7 11 13 11 6 12 11 5 7 10 6 11 6 14 9 12 3 10 8 12 11 9 10 13 7 15 3 8 11 7 5 7 6 7 8 11 10 6 14 2 8 8 9 7 7 8 11 6 10 2 11 7 6 5 2 8 9 7 8 5 4 4 5 2 5 5 9 13 4 9 5 3 5 12 9 4 6 3 5 7 8 6 4 4 2 4 7 5 4 11 4 3 9 1 6 5 7 11 6 8 7 7 8 6 4 7 4 4 5 4 2 4 1 6 4 5 7 5 7 8 3 6 10 6 7 6 8 9 5 4 6 4 6 6 4 4 4 3 7 7 4 5 5 8 9 4 11 9 8 8 12 7 9 5 8 10 12 9 6 6 1 11 8 7 2 6 9 7 5 9 8 7 5 3 2 10 9 10 4 3 12 6 10 4 5 8 5 9 4 6 7 3 9 6 6 11 5 8 10 8 5 8 11 5 9 6 8 5 7 6 2 10 3 2 4 6 2 8 5 3 8 9 10 5 9 5 6 8 11 5 5 7 7 10 3 7 7 6 3 4</intensities>
+				<commonCountingTime unit="seconds">2.640</commonCountingTime>
+				<intensities unit="counts">262096 272637 285740 296128 308085 320353 330902 341272 353433 364646 375951 387874 397049 408376 419143 428256 440426 451320 458033 470484 479396 487474 495474 503404 510228 518202 526310 530881 537969 542578 550221 551990 557467 561741 563257 565008 566932 570298 568321 563307 563652 557880 550957 539395 530659 512973 495634 474970 449547 418747 388627 352629 317528 284959 253164 227656 202767 181762 163043 147064 133290 120676 110885 101707 93477 87337 80187 73578 68297 63121 59176 55846 52327 49548 46421 43350 39882 37650 35183 34258 33058 31152 29479 27963 25967 24224 23016 21933 20952 19775 19646 18791 17664 17077 16003 15093 14117 13646 13319 13001 12583 12003 11636 11040 10624 9662 9260 8725 8746 8391 8280 8092 7789 7486 7041 6681 6324 5887 5658 5598 5413 5456 5364 5326 4992 4725 4296 4252 3966 3761 3796 3684 3639 3711 3563 3343 3254 3101 2877 2714 2579 2553 2503 2572 2536 2525 2408 2272 2074 2076 1919 1852 1725 1702 1819 1785 1795 1761 1700 1673 1509 1348 1328 1277 1191 1210 1107 1223 1264 1232 1229 1109 1061 993 867 859 891 855 898 936 913 890 828 844 801 705 675 615 575 641 668 637 628 673 646 616 574 489 507 450 437 453 443 470 461 484 512 435 433 423 353 349 339 314 315 345 377 364 381 363 354 303 298 289 299 259 263 279 284 275 292 296 244 280 253 206 203 219 202 205 214 195 228 244 214 231 180 169 181 165 124 165 172 166 190 165 165 168 151 151 126 150 119 135 142 161 136 144 144 128 139 119 113 111 124 99 128 108 93 129 114 121 108 101 90 90 102 91 91 81 86 109 85 87 97 92 75 94 63 78 80 89 91 95 76 90 101 83 75 81 81 70 59 67 85 76 75 71 84 81 71 89 54 46 55 45 44 60 77 61 66 46 75 54 46 53 62 53 57 52 53 41 59 52 61 44 61 50 51 54 49 34 40 44 40 57 45 38 42 29 40 41 34 45 32 43 19 42 24 36 35 28 32 22 34 37 31 29 20 23 37 32 25 24 37 33 24 28 39 25 28 24 26 29 30 33 28 25 30 16 25 24 18 32 11 23 19 19 17 11 33 26 15 26 23 14 22 22 20 25 14 15 20 17 12 21 13 27 14 22 20 20 16 12 21 16 17 12 14 19 21 18 5 9 17 23 22 17 15 15 10 11 19 13 11 14 11 8 16 13 14 13 14 20 11 8 20 19 9 8 6 7 8 10 16 12 10 6 4 9</intensities>
 			</dataPoints>
 		</scan>
 	</xrdMeasurement>
