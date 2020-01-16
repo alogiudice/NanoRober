@@ -50,8 +50,11 @@ class MainWindow(Wid.QMainWindow):
         changerangestr = "Adjust theta range for smoothing and\n peak finding"
         xrrchangerange = self.createAction("Change theta working range", None, None,
                                            changerangestr)
+        savexrrimage = self.createAction("Save XRR image as PNG", None, None, None)
         self.xrrsubmenu.addAction(xrrchangerange)
+        self.xrrsubmenu.addAction(savexrrimage)
         xrrchangerange.triggered.connect(self.form_widget.openXRRDialogRange)
+        savexrrimage.triggered.connect(self.form_widget.savexrrgraph)
         saveplotv = self.createAction("Save VSM plot as...")
         #saveplotv.triggered.connect(self.savePlot())
         

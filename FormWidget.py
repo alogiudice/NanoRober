@@ -209,6 +209,12 @@ class FormWidget(Wid.QWidget):
         self.layout.addWidget(tab)
         self.setLayout(self.layout)
 
+    def savexrrgraph(self):
+         name = Wid.QFileDialog.getSaveFileName(self, 'Save png image to location')
+         if name is None:
+             pass
+         self.graphxr.savePlot(name[0])
+
     def getFilevsm(self):
         name = Wid.QFileDialog.getOpenFileName(self, 'Open VSM File...')
         if name is None:

@@ -57,3 +57,6 @@ class PlotCanvas(FigureCanvas):
     def updatexyLabels(self, xlabel, ylabel):
         self.axes.set_xlabel(xlabel)
         self.axes.set_ylabel(ylabel)
+
+    def savePlot(self, name):
+        self.fig.savefig(name)
