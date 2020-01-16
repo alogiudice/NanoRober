@@ -9,7 +9,7 @@ Created on Mon Aug  5 16:55:48 2019
 import os
 import sys
 from datetime import date
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, Qt, pyqtSlot
 import PyQt5.QtGui as QtGui
 import PyQt5.QtWidgets as Wid
 import FormWidget as formw
@@ -30,7 +30,6 @@ class MainWindow(Wid.QMainWindow):
         self.setCentralWidget(self.form_widget)
         self.setGeometry(10, 10, 640, 640)
         
-        
         # Creamos una menubar y una toolbar.
         fileToolbar = self.addToolBar('Toolbar')
         menubar1 = self.menuBar()
@@ -41,18 +40,18 @@ class MainWindow(Wid.QMainWindow):
         newSample = self.createAction("New Sample", "newsample", None, 
                                       "Create a new Sample file.")
 
-
         # Data menu options
         self.xrrsubmenu = dataMenu.addMenu("XRR data")
-        self.xrrsubmenu.setDisabled(True)
+       # self.xrrsubmenu.setDisabled(True)
         vsmsubmenu = dataMenu.addMenu("VSM data")
-        vsmsubmenu.setDisabled(True)
+        #vsmsubmenu.setDisabled(True)
 
         # XRR menu
         changerangestr = "Adjust theta range for smoothing and\n peak finding"
         xrrchangerange = self.createAction("Change theta working range", None, None,
                                            changerangestr)
         self.xrrsubmenu.addAction(xrrchangerange)
+        xrrchangerange.triggered.connect(self.form_widget.openXRRDialogRange)
         saveplotv = self.createAction("Save VSM plot as...")
         #saveplotv.triggered.connect(self.savePlot())
         
@@ -63,8 +62,17 @@ class MainWindow(Wid.QMainWindow):
         helpmenu.addAction(helpme)
         fileMenu.addAction(newSample)
         fileToolbar.addAction(newSample)
+
+    # DOESN'T WORK YET :( SIGNAL FROM FORMWIDGET IS NOT BEING EMMITED
+    @pyqtSlot()
+    def receive_trigger_xrr(self):
+        self.form_widget.xrronvalue.x.connect(self.onchangexrrvalue)
+        print('REceived Trigger! Yayyyy')
+            
+    def onchangexrrvalue(self):
+        self.xrrmenu.setDisabled(False)
+
         
-        ##
     def helpAbout(self):
         msg = Wid.QMessageBox.about(self, "About NanoRober",
                             """<b>NanoRober - Sample Analysis Simplifier</b> 
@@ -96,7 +104,6 @@ class MainWindow(Wid.QMainWindow):
         today = date.today()
         file.write('Holis! File created on %s\n File created with RoberNano.\n'
                    'Chauchis.' % today)
-         
  #############################################################################       
             
             

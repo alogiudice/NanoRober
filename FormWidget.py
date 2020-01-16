@@ -7,7 +7,7 @@ Created on Wed Sep  4 15:49:40 2019
 """
 
 import os
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, Qt, pyqtSignal, QObject
 from PyQt5.QtGui import QPixmap, QIcon
 import PyQt5.QtWidgets as Wid
 import numpy as np
@@ -15,13 +15,17 @@ import VsmData as vsm
 import ReflectData as reflect
 import PyPlotCanvas as canvas
 
-class FormWidget(Wid.QWidget, MainWindow):
+class Communicate(QObject):
+    x = pyqtSignal()
+
+class FormWidget(Wid.QWidget):
     
     def __init__(self, parent):
-        
-        self.vsminfo = vsm.VsmData()
-        self.refldat = reflect.Reflect()
         super().__init__(parent)
+        self.vsminfo = vsm.VsmData()
+        self.xrronvalue = Communicate()
+        self.refldat = reflect.Reflect()
+        
         self.layout = Wid.QVBoxLayout(self)
         
         infoWidget = Wid.QWidget()
@@ -222,6 +226,7 @@ class FormWidget(Wid.QWidget, MainWindow):
         name = Wid.QFileDialog.getOpenFileName(self, 'Open XRR File...')
         if name is None:
             pass
+
         self.refldat.loadFile(name[0])
         self.thetarangestart = 0
         self.thetarangeend = len(self.refldat.x)
@@ -233,6 +238,7 @@ class FormWidget(Wid.QWidget, MainWindow):
         self.graphxr.updatePlot([self.refldat.x, self.refldat.counts])
         self.xrframe.show()
         self.refldat.testReflect()
+        self.xrronvalue.x.emit()
 
 
     def replot1(self, stri):
