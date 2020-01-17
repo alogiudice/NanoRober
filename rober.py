@@ -42,9 +42,30 @@ class MainWindow(Wid.QMainWindow):
 
         # Data menu options
         self.xrrsubmenu = dataMenu.addMenu("XRR data")
-       # self.xrrsubmenu.setDisabled(True)
-        vsmsubmenu = dataMenu.addMenu("VSM data")
+        # self.xrrsubmenu.setDisabled(True)
+        self.vsmsubmenu = dataMenu.addMenu("VSM data")
         #vsmsubmenu.setDisabled(True)
+
+        #VSM menu
+        vsmgeometry = self.createAction("Measurement geometry...", None, None, None)
+        self.vsmsubmenu.addAction(vsmgeometry)
+
+        vsmsample = self.createAction("Set sample size", None, None, None)
+        self.vsmsubmenu.addAction(vsmsample)
+        vsmsample.triggered.connect(self.form_widget.openDialog)
+         
+        vsmoffset = self.createAction("Correct offset", None, None, None)
+        self.vsmsubmenu.addAction(vsmoffset)
+        vsmoffset.triggered.connect(lambda: self.form_widget.replot1("momentOffset"))
+
+        vsmsaturation = self.createAction("Calculate Msat", None, None, None)
+        self.vsmsubmenu.addAction(vsmsaturation)
+        vsmsaturation.triggered.connect(lambda: self.form_widget.replot1("saturationMag"))
+
+        savevsmimage = self.createAction("Save VSM image as PNG", None, None, None)
+        self.vsmsubmenu.addAction(savevsmimage)
+        savevsmimage.triggered.connect(lambda: self.form_widget.savegraph("vsm"))
+        
 
         # XRR menu
         changerangestr = "Adjust theta range for smoothing and\n peak finding"
@@ -54,9 +75,8 @@ class MainWindow(Wid.QMainWindow):
         self.xrrsubmenu.addAction(xrrchangerange)
         self.xrrsubmenu.addAction(savexrrimage)
         xrrchangerange.triggered.connect(self.form_widget.openXRRDialogRange)
-        savexrrimage.triggered.connect(self.form_widget.savexrrgraph)
+        savexrrimage.triggered.connect(lambda: self.form_widget.savegraph("xrr"))
         saveplotv = self.createAction("Save VSM plot as...")
-        #saveplotv.triggered.connect(self.savePlot())
         
         helpme = self.createAction("About", 'Rober', None, None)
         

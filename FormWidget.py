@@ -144,7 +144,7 @@ class FormWidget(Wid.QWidget):
         self.thetacrit2lab = Wid.QLabel()
         thetacrit2button = Wid.QPushButton()
         thetacrit2button.setText("Calculate from regression")
-        thetacrit2button.clicked.connect(self.openXRRDialogRange)
+        thetacrit2button.clicked.connect(self.smoothXRRDialogRange)
         thetacrit2button.setFixedSize(200, 25)
         self.thetacrit2lab.setText('2\u03B8<sub>c</sub> (intercept) = ?')
         
@@ -203,17 +203,20 @@ class FormWidget(Wid.QWidget):
         tab = Wid.QTabWidget()
         tab.setParent(self)
         tab.addTab(infoWidget, "Sample &Info")
-        tab.addTab(xrayWidget, "&XRR Measurements")
-        tab.addTab(rheedWidget, "&RHEED Measurements")
-        tab.addTab(vsmWidget, "VS&M Measurements")
+        tab.addTab(xrayWidget, "&XRR data")
+        tab.addTab(rheedWidget, "&RHEED data")
+        tab.addTab(vsmWidget, "VS&M data")
         self.layout.addWidget(tab)
         self.setLayout(self.layout)
 
-    def savexrrgraph(self):
+    def savegraph(self, data):
          name = Wid.QFileDialog.getSaveFileName(self, 'Save png image to location')
          if name is None:
              pass
-         self.graphxr.savePlot(name[0])
+         if data is "xrr":
+             self.graphxr.savePlot(name[0])
+         elif data is "vsm":
+             self.graph.savePlot(name[0])
 
     def getFilevsm(self):
         name = Wid.QFileDialog.getOpenFileName(self, 'Open VSM File...')
@@ -409,3 +412,53 @@ class FormWidget(Wid.QWidget):
         self.dialogM.setFixedSize(380,170)
         self.dialogM.setWindowModality(Qt.ApplicationModal)
         self.dialogM.exec_()
+
+    def smoothXRRDialogRange(self):
+           self.dialogM = Wid.QDialog()
+           self.dialogM.setWindowTitle("Curve smoothing and peak "
+                                       "finding")
+           frame = Wid.QVBoxLayout()
+           inputs1 = Wid.QHBoxLayout()
+           inputs2 = Wid.QHBoxLayout()
+           text = Wid.QLabel()
+           text.setText('Specify the theta cutoff and \n'
+                        'lowess fraction to use.')
+           starttext = Wid.QLabel()
+           self.startvalue = Wid.QLabel()
+           starttext.setText('2\u03B8 cutoff: ')
+           self.start = Wid.QSlider(Qt.Horizontal)
+           endtext = Wid.QLabel()
+           self.endvalue = Wid.QLabel()
+           endtext.setText('Lowess fraction: ')
+           self.end = Wid.QSlider(Qt.Horizontal)
+           b1 = Wid.QPushButton("Update", self.dialogM)
+           b2 = Wid.QPushButton("Close", self.dialogM)
+           #start.valueChanged.connect(lambda: self.replotXRRrange(start, end))
+           self.start.valueChanged.connect(lambda: self.textchange('cutoff'))
+           #end.valueChanged.connect(self.dialogM.close)
+           self.end.valueChanged.connect(lambda: self.textchange('lowess'))
+           b = Wid.QHBoxLayout()
+           b.addWidget(b1)
+           b.addWidget(b2)
+           inputs1.addWidget(starttext)
+           inputs1.addWidget(self.start)
+           inputs1.addWidget(self.startvalue)
+           inputs2.addWidget(endtext)
+           inputs2.addWidget(self.end)
+           inputs2.addWidget(self.endvalue)
+           frame.addWidget(text)
+           frame.addLayout(inputs1)
+           frame.addLayout(inputs2)
+           frame.addLayout(b)
+           self.dialogM.setLayout(frame)
+           self.dialogM.setFixedSize(380,170)
+           self.dialogM.setWindowModality(Qt.ApplicationModal)
+           self.dialogM.exec_()
+
+    def textchange(self,box):
+        if box == 'cutoff':
+            text =  str(self.start.value())
+            self.startvalue.setText(text)
+        elif box == 'lowess':
+            text = str(self.end.value())
+            self.endvalue.setText(text)
