@@ -152,14 +152,14 @@ class FormWidget(Wid.QWidget):
         # Etiquetas para el ajuste
         #self.line = Wid.QFrame() 
         self.layout2 = Wid.QGridLayout()
-        self.infolabel1 = Wid.QLabel()
-        self.infolabel1.setText('-Peak fitting info:')
+        infolabel1 = Wid.QLabel()
+        infolabel1.setText('-Peak fitting info:')
         self.infolabel2 = Wid.QLabel()
         self.infolabel2.setText('Number of peaks: ?')
         self.infolabel3 = Wid.QLabel()
         self.infolabel3.setText('Lowess: ?')
         self.infolabel4 = Wid.QLabel()
-        self.infolabel4.setText('Slope:')
+        self.infolabel4.setText('Slope: ?')
         self.infolabel5 = Wid.QLabel()
         self.infolabel5.setText('Intercept: ?')
         self.infolabel6 = Wid.QLabel()
@@ -168,7 +168,7 @@ class FormWidget(Wid.QWidget):
         self.infolabel7.setText('n-oddity: ?')
         #self.line.setFrameShadow(Wid.QFrame.Raised)
         
-        self.layout2.addWidget(self.infolabel1, 0, 0)
+        self.layout2.addWidget(infolabel1, 0, 0)
         self.layout2.addWidget(self.infolabel2, 1, 0)      
         self.layout2.addWidget(self.infolabel3, 1, 1)
         self.layout2.addWidget(self.infolabel4, 2, 0)
@@ -523,5 +523,14 @@ class FormWidget(Wid.QWidget):
                                                             thetacrit_diff1)
         message.setDetailedText(data)
         message.setStandardButtons(Wid.QMessageBox.Ok)
+        message.buttonClicked.connect(lambda: self.updateSlopeLabel(slope1, intercept1,
+                                                                    r_value1,
+                                                                    thetacritexp_1))
         message.exec_()
+
+    def updateSlopeLabel(self, slope1, intercept1, r_value1, thetacritexp_1):
+        self.infolabel4.setText("Slope: %.4E" % slope1)
+        self.infolabel5.setText("Intercept: %.4E" % intercept1)
+        self.infolabel6.setText("R-Squared: %f" % r_value1)
+        self.thetacrit2lab.setText('2\u03B8<sub>c</sub> (intercept) = %f' % thetacrit_exp1)
         
