@@ -77,6 +77,15 @@ class MainWindow(Wid.QMainWindow):
         xrrchangerange.triggered.connect(self.form_widget.openXRRDialogRange)
         savexrrimage.triggered.connect(lambda: self.form_widget.savegraph("xrr"))
         saveplotv = self.createAction("Save VSM plot as...")
+        smoothcurve = self.createAction("Curve smoothing and peak finding...")
+        smoothcurve.triggered.connect(self.form_widget.smoothXRRDialogRange)
+        self.xrrsubmenu.addAction(smoothcurve)
+        peakfinding = self.createAction("Fit peaks")
+        peakfinding.triggered.connect(self.form_widget.calcPeaks)
+        self.xrrsubmenu.addAction(peakfinding)
+        
+
+        # Help menu
         
         helpme = self.createAction("About", 'Rober', None, None)
         

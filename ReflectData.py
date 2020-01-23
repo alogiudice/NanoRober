@@ -21,6 +21,12 @@ class Reflect():
         self.maxcounts_i = 0
         self.thetacritic1 = 0
         self.thetacritic2 = 0
+        self.thetastart_i = None
+        self.thetaend_i = None
+        self.thetarangestart = None
+        self.thetarangeend = None
+        self.x_cutoff = None
+        self.peaks_index_zero = None
         
     def testReflect(self):
         print('XRR Module loaded!')
@@ -70,6 +76,8 @@ class Reflect():
         self.counts = list(map(float, counts)) 
         # Generate 2theta list
         self.x = np.linspace(thetastart, thetaend, len(counts))
+        self.thetastart_i = 0
+        self.thetaend_i = len(self.x)
         
     def thetacrit(self, maxindex_crop = 1.6):
         # Esta función devuelve el valor del ángulo crítico del sistema, tenien
@@ -109,7 +117,7 @@ class Reflect():
         self.thetacritic1 = thetacritic[0]
               
     
-    def smoothcounts(self, fig, fraclowess, x_cutoffindex = 1.705):
+    def smoothcounts(self, fig, fraclowess, x_cutoffindex):
         # Esta función grafica los datos sin smoothear, los ya smootheados por 
         # lowess, y a los picos encontrados. Devuelve el array peaks_index, en 
         # que están especificadas las posiciones de los picos en el rango 
@@ -119,15 +127,18 @@ class Reflect():
         # roceso que parece complicado, porque vamos a tener que smoothear la 
         # función. Probé con savgol y no dio muy bien para el tipo de señal que
         #tenemos. También habría que poner hasta qué pico queremos smoothear.
-        
         max_value = max(self.counts)
         max_index = self.counts.index(max_value)
-        x_cutoff = self.x.index(x_cutoffindex)
+        self.x_cutoff = self.x.index(x_cutoffindex)
     
         # Croppeamos los arrays para realizar los ajustes en este rango.
-        
-        xx = self.x[max_index:x_cutoff]
-        yy = self.counts[max_index:x_cutoff]
+        if self.x_cutoff is None:
+            xx = self.x[max_index:self.thetaend_i]
+            yy = self.counts[max_index:self.thetaend_i]
+        else:
+            xx = self.x[max_index:self.x_cutoff]
+            yy = self.counts[max_index:self.x_cutoff]
+            
         
         lowess = sm.nonparametric.lowess(yy, xx, frac=fraclowess)
         
@@ -141,27 +152,57 @@ class Reflect():
         for peak in peaks_index[0]:
             peak_list.append(lowess[peak, 1])
             xpeaks.append(xx[peak])
+
+        # Ahora, se debería modificar el gráfico a partir de esa
+        # función, pero el plot no es un atributo de esta clase,
+        # así que devolveremos los valores y que FormWidget se
+        # encargue de graficar.
             
-        fig.clear()
-        ax = fig.add_subplot(111)
-        ax.set_ylabel('counts')
-        ax.set_xlabel('2theta[deg]')
-        ax.grid()
+        #fig.clear()
+        #ax = fig.add_subplot(111)
+        #ax.set_ylabel('counts')
+        #ax.set_xlabel('2theta[deg]')
+        #ax.grid()
         
-        ax.plot(xx, yy, color='orange', label='data')
+        #ax.plot(xx, yy, color='orange', label='data')
         
-        ax.plot(xx, lowess[:,1], color='blue', linestyle='--', label='smooth')
-        ax.plot(xpeaks, peak_list, 'ro', label='found maxima')
-        ax.set_yscale('log')
-        plt.legend(loc='upper right')
+       # ax.plot(xx, lowess[:,1], color='blue', linestyle='--', label='smooth')
+        #ax.plot(xpeaks, peak_list, 'ro', label='found maxima')
+       # ax.set_yscale('log')
+       # plt.legend(loc='upper right')
             
-        fig.canvas.draw()
+        #fig.canvas.draw()
         #fig_smooth.canvas.flush_events()
         
-        return peaks_index_zero
+        return peaks_index_zero, lowess, xpeaks, peak_list
+
+    def smoothcounts_wg(self, indexinit, indexend, cutoff, fraclowess):
+        # En esta función tenemos en cuenta que ya se especificó anteriormente
+        # el intervalo a tener en cuenta mediante un thetastary y un thetaend.
+        # Por las dudas, se pide un cutoff por si se quiere cortar la curva
+        # anteriormente, pero no es necesario.
+        idx = np.searchsorted(self.x, cutoff, side="left")
+        xx = self.x[indexinit:idx]
+        yy = self.counts[indexinit:idx]
+        self.x_cutoff = idx
+        
+        lowess = sm.nonparametric.lowess(yy, xx, frac=fraclowess)
+        
+        peaks_index = argrelextrema(lowess[:,1], np.greater)
+        self.peaks_index_zero = [indexinit + y for y in peaks_index[0]]
+        print("Found %d local maxima." % len(peaks_index[0]) )
+        
+        peak_list = []
+        xpeaks = []
+        
+        for peak in peaks_index[0]:
+            peak_list.append(lowess[peak, 1])
+            xpeaks.append(xx[peak])
+
+        return lowess, xpeaks, peak_list
 
 
-    def get_slope(self, peaks_index_zero, n_limit = 4):
+    def get_slope(self, n_limit = 12):
         
         # Esta función obtiene los parámetros del ajuste lineal del sin**2 de los 
         # picos con los valores de n. Toma un array c con las posiciones en 2theta
@@ -169,12 +210,12 @@ class Reflect():
         # de etiquetas. AJusta automáticamente segun se adquiera el mejor valor
         # de difs entre theta crítico de I y el del ajuste.
         n = 1
-        angpeaks = [0] * len(peaks_index_zero)
+        angpeaks = [0] * len(self.peaks_index_zero)
         angpeaks = [np.sin(pow(self.x[peak] * (np.pi / 360), 2)) for peak in 
-                    peaks_index_zero]
+                    self.peaks_index_zero]
         
         # Para cada n distinto
-        npeaks = np.arange(n, n + len(peaks_index_zero), 1)
+        npeaks = np.arange(n, n + len(self.peaks_index_zero), 1)
         npeaks = [pow(nn * self.lambdax / 2, 2) for nn in npeaks]
         
         
@@ -187,7 +228,7 @@ class Reflect():
         
         while n < n_limit:
             n += 1/2
-            npeaks = np.arange(n, n + len(peaks_index_zero), 1)
+            npeaks = np.arange(n, n + len(self.peaks_index_zero), 1)
             npeaks = [pow(nn * self.lambdax / 2, 2) for nn in npeaks]
             slope, intercept, r_value, p_value, std_err = stats.linregress(npeaks, 
                                                                        angpeaks)
@@ -209,7 +250,7 @@ class Reflect():
         #line3, = ax2.plot(npeaks, angpeaks, 'o')
         #line4, = ax2.plot(npeaks, fittedline, color='green')
     
-        print('Final n: %f' % n)
+        print('Final n: %i' % n)
         print('Fitting results for data:')
         print("slope: %e,\nIntercept: %e,\nR-squared: %f" % (slope1, intercept1, 
                                                              r_value1))
@@ -217,10 +258,10 @@ class Reflect():
         print('2theta_crit value obtained is %f . Value obtained from counts'
               ' was %f' % (thetacrit_exp1, thetacrit_int) )
         
-        print("Percentage difference between both critical angles is %f " 
+        print("Percentage difference between both critical angles is \% %f. " 
               % thetacrit_diff1)
         
-        return slope, intercept, r_value
+        return n, slope1, intercept1, r_value1, thetacrit_exp1, thetacrit_diff1
     
     def save_reflect(self, filename):
         with open(filename, 'w') as file:

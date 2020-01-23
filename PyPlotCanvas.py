@@ -7,7 +7,7 @@ import PyQt5.QtWidgets as Wid
 
 class PlotCanvas(FigureCanvas):
 
-    def __init__(self, linenumber, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, linenumber, ownsizes=None, parent=None, width=5, height=4, dpi=100):
         
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
@@ -18,13 +18,20 @@ class PlotCanvas(FigureCanvas):
         FigureCanvas.updateGeometry(self)
         
         self.ldict = {}
-        lcolors = ('blue', 'red', 'purple', 'orange', 'green')
-        lmarkers = ('o', 'o', 's', 'o', 'o')
-        
+        lcolors = ()
+        lmarkers = ()
+        lcolors = ('purple', 'red', 'green', 'orange', 'yellow')
+        lmarkers = ('o', 'o', '*', 'o', 'o')
+        if ownsizes is None:
+            lsizes = (2, 2, 2, 2, 2)
+        else:
+            lsizes = ownsizes
+
         for i in range(0, linenumber):
             key = 'line' + str(i)
             self.ldict[key] = lines.Line2D([], [], marker=lmarkers[i], 
-                                          color=lcolors[i], linestyle='') 
+                                           color=lcolors[i], linestyle='',
+                                           markersize=lsizes[i]) 
 
         self.draw()
         self.axes.grid()

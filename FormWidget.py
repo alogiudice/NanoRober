@@ -8,7 +8,7 @@ Created on Wed Sep  4 15:49:40 2019
 
 import os
 from PyQt5.QtCore import QSize, Qt, pyqtSignal, QObject
-from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtGui import QPixmap, QIcon, QDoubleValidator
 import PyQt5.QtWidgets as Wid
 import numpy as np
 import VsmData as vsm
@@ -125,8 +125,9 @@ class FormWidget(Wid.QWidget):
         xrlayout = Wid.QGridLayout()
         
         #Iniciamos el objeto para plottear los datos.
-        
-        self.graphxr = canvas.PlotCanvas(3, width=4, height=6, dpi=100)
+
+        sizesofxr = (3.0, 1, 10)
+        self.graphxr = canvas.PlotCanvas(3, ownsizes=sizesofxr, width=4, height=6, dpi=100)
 
         layout1 = Wid.QGridLayout()
         xrrinfo = Wid.QLabel()
@@ -297,14 +298,18 @@ class FormWidget(Wid.QWidget):
             idy = np.searchsorted(self.refldat.x[idx:], numend, side="left")
             # I'll only change the graph scale, but we must know the
             # numbers for calculation.
+
+            self.refldat.thetastart_i = idx
+            self.refldat.thetaend_i = idy
  
-            self.thetarangestart = self.refldat.x[idx]
-            self.thetarangeend = self.refldat.x[idx+idy]
+            self.refldat.thetarangestart = self.refldat.x[idx]
+            self.refldat.thetarangeend = self.refldat.x[idx+idy]
             # We set the new y limits as well.
             miny = np.amin(self.refldat.counts[idx:idx+idy])
             maxy = np.amax(self.refldat.counts[idx:idx+idy])
                     
-            self.graphxr.limitPlot([self.thetarangestart,self.thetarangeend], [miny, maxy])
+            self.graphxr.limitPlot([self.refldat.thetarangestart,self.refldat.thetarangeend],
+                                   [miny, maxy])
         
         
     def updateLabel(self):
@@ -424,28 +429,28 @@ class FormWidget(Wid.QWidget):
            text.setText('Specify the theta cutoff and \n'
                         'lowess fraction to use.')
            starttext = Wid.QLabel()
-           self.startvalue = Wid.QLabel()
            starttext.setText('2\u03B8 cutoff: ')
-           self.start = Wid.QSlider(Qt.Horizontal)
+           
+           start = Wid.QLineEdit()
+           start.setValidator(QDoubleValidator())
            endtext = Wid.QLabel()
-           self.endvalue = Wid.QLabel()
            endtext.setText('Lowess fraction: ')
-           self.end = Wid.QSlider(Qt.Horizontal)
+           self.end = Wid.QDoubleSpinBox()
+           self.end.setRange(0.00,1.00)
+           self.end.setSingleStep(0.01)
            b1 = Wid.QPushButton("Update", self.dialogM)
            b2 = Wid.QPushButton("Close", self.dialogM)
-           #start.valueChanged.connect(lambda: self.replotXRRrange(start, end))
-           self.start.valueChanged.connect(lambda: self.textchange('cutoff'))
-           #end.valueChanged.connect(self.dialogM.close)
-           self.end.valueChanged.connect(lambda: self.textchange('lowess'))
+           b1.clicked.connect(lambda: self.smoothxrr(start.text(),
+                                                     self.end.value()) )
+           b2.clicked.connect(self.dialogM.close)
+
            b = Wid.QHBoxLayout()
            b.addWidget(b1)
            b.addWidget(b2)
            inputs1.addWidget(starttext)
-           inputs1.addWidget(self.start)
-           inputs1.addWidget(self.startvalue)
+           inputs1.addWidget(start)
            inputs2.addWidget(endtext)
            inputs2.addWidget(self.end)
-           inputs2.addWidget(self.endvalue)
            frame.addWidget(text)
            frame.addLayout(inputs1)
            frame.addLayout(inputs2)
@@ -455,10 +460,68 @@ class FormWidget(Wid.QWidget):
            self.dialogM.setWindowModality(Qt.ApplicationModal)
            self.dialogM.exec_()
 
-    def textchange(self,box):
-        if box == 'cutoff':
-            text =  str(self.start.value())
-            self.startvalue.setText(text)
-        elif box == 'lowess':
-            text = str(self.end.value())
-            self.endvalue.setText(text)
+
+    def smoothxrr(self, cutoff, fraclowess):
+        # cutoff es lo que sale de la LineEdit box, sin modificar.
+        # fraclowess viene de un DoubleSpinBox. Siempre es un float.
+        
+        if cutoff is "":
+            print('No cutoff was specified. Using last theta value instead')
+            cutoff = self.refldat.x[self.refldat.thetaend_i]
+        else:
+            cutoff = float(cutoff)
+            
+        lowess, xpeaks, peak_list = self.refldat.smoothcounts_wg(self.refldat.thetastart_i,
+                                                                 self.refldat.thetaend_i,
+                                                                 cutoff, fraclowess)
+
+        start = self.refldat.thetastart_i
+        end = self.refldat.x_cutoff
+        
+        if end is None:
+            end = self.refldat.thetaend_i
+            print('cutoff is None')
+
+
+        self.graphxr.updatePlot([self.refldat.x[start:end], self.refldat.counts[start:end]],
+                                [self.refldat.x[start:end], lowess[:,1]],
+                                [xpeaks, peak_list])
+
+
+    def calcPeaks(self):
+        # Toma los valores calculados anteriormente al hacer el smooth de la función y encontrar
+        # los picos, y luego elige el n a usar tal que minimice la diferencia entre el theta
+        # crítico inicial y el encontrado aquí.
+
+        n, slope1, intercept1, r_value1, thetacrit_exp1, thetacrit_diff1 = self.refldat.get_slope()
+        thetacritcounts = self.refldat.thetacrit()
+        thick = pow(slope1, -0.5)
+        thicknm = thick * 0.1
+
+        if abs(thetacrit_diff1) < 10:
+            pic = "c-ok.png"
+        elif 10 < abs(thetacrit_diff1) < 30:
+            pic = "c-med.png"
+        else:
+            pic = "c-bad.png"
+            
+        message = Wid.QMessageBox()
+        ico = os.path.join(os.path.dirname(__file__), pic)
+        pixmap = QPixmap(ico).scaledToHeight(84, 
+                                             Qt.SmoothTransformation)
+        message.setIconPixmap(pixmap)
+        text1 = ("Finished! A film thickness of %.3f nm was calculated."
+                 "( = %.3f Angstroms)") % (thicknm, thick)
+        message.setText(text1)
+        message.setWindowTitle("Peak fitting finished")
+        data = ("Details: \nFinal n: %d \nFitting results from data:\nSlope = %.4E\n"
+                "Intercept = %.4E \nR-Squared = %f \n2\u03B8c value obtained was "
+                "%.4f. Value obtained from counts was %.4f.\nPercentage difference"
+                " between both critical angles is %.3f") % (n, slope1, intercept1,
+                                                            r_value1, thetacrit_exp1,
+                                                            thetacritcounts,
+                                                            thetacrit_diff1)
+        message.setDetailedText(data)
+        message.setStandardButtons(Wid.QMessageBox.Ok)
+        message.exec_()
+        
