@@ -47,7 +47,7 @@ class MainWindow(Wid.QMainWindow):
         #vsmsubmenu.setDisabled(True)
 
         #VSM menu
-        vsmgeometry = self.createAction("Measurement geometry...", None, None, None)
+        vsmgeometry = self.createAction("Measurement's geometry...", None, None, None)
         self.vsmsubmenu.addAction(vsmgeometry)
 
         vsmsample = self.createAction("Set sample size", None, None, None)
@@ -71,18 +71,21 @@ class MainWindow(Wid.QMainWindow):
         changerangestr = "Adjust theta range for smoothing and\n peak finding"
         xrrchangerange = self.createAction("Change theta working range", None, None,
                                            changerangestr)
-        savexrrimage = self.createAction("Save XRR image as PNG", None, None, None)
         self.xrrsubmenu.addAction(xrrchangerange)
-        self.xrrsubmenu.addAction(savexrrimage)
         xrrchangerange.triggered.connect(self.form_widget.openXRRDialogRange)
-        savexrrimage.triggered.connect(lambda: self.form_widget.savegraph("xrr"))
         saveplotv = self.createAction("Save VSM plot as...")
         smoothcurve = self.createAction("Curve smoothing and peak finding...")
         smoothcurve.triggered.connect(self.form_widget.smoothXRRDialogRange)
         self.xrrsubmenu.addAction(smoothcurve)
+        peakmanip = self.createAction("Edit peak points")
+        peakmanip.triggered.connect(self.form_widget.editPeaks)
+        self.xrrsubmenu.addAction(peakmanip)
         peakfinding = self.createAction("Fit peaks")
         peakfinding.triggered.connect(self.form_widget.calcPeaks)
         self.xrrsubmenu.addAction(peakfinding)
+        savexrrimage = self.createAction("Save XRR image as PNG", None, None, None)
+        savexrrimage.triggered.connect(lambda: self.form_widget.savegraph("xrr"))
+        self.xrrsubmenu.addAction(savexrrimage)
         
 
         # Help menu
@@ -145,7 +148,7 @@ if __name__ == '__main__':
     app.setOrganizationDomain("www.github.com/alogiudice/nanorober-py")
     app.setApplicationName("NanoRober - version %s" % __version__)
     app.setWindowIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__),
-                                               "rober.png")))
+                                               "icons/rober.png")))
     form = MainWindow()
     form.show()
     app.exec_()

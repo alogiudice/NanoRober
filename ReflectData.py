@@ -235,8 +235,8 @@ class Reflect():
             
             thetacrit_exp = pow(intercept, 1/2) * (360 / np.pi)
             thetacrit_diff = ((thetacrit_exp - thetacrit_int) / thetacrit_int ) * 100
-            print(thetacrit_exp)
-            print(r_value)
+            #print(thetacrit_exp)
+            #print(r_value)
 
             if r_value > r_value1 and abs(thetacrit_diff1) > abs(thetacrit_diff):
                 slope1 = slope
@@ -258,7 +258,7 @@ class Reflect():
         print('2theta_crit value obtained is %f . Value obtained from counts'
               ' was %f' % (thetacrit_exp1, thetacrit_int) )
         
-        print("Percentage difference between both critical angles is \% %f. " 
+        print("Percentage difference between both critical angles is %f. " 
               % thetacrit_diff1)
         
         return n, slope1, intercept1, r_value1, thetacrit_exp1, thetacrit_diff1

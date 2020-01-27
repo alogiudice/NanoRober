@@ -282,7 +282,7 @@ class FormWidget(Wid.QWidget):
         except:
             warn = Wid.QMessageBox()
             warn.setWindowTitle('Invalid data')
-            ico = os.path.join(os.path.dirname(__file__), "laika.png")
+            ico = os.path.join(os.path.dirname(__file__), "icons/laika.png")
             pixmap = QPixmap(ico).scaledToHeight(64, 
                                   Qt.SmoothTransformation)
             warn.setIconPixmap(pixmap)
@@ -297,7 +297,7 @@ class FormWidget(Wid.QWidget):
             idx = np.searchsorted(self.refldat.x, numstart, side="left")
             idy = np.searchsorted(self.refldat.x[idx:], numend, side="left")
             # I'll only change the graph scale, but we must know the
-            # numbers for calculation.
+            # numbers for next calculations.
 
             self.refldat.thetastart_i = idx
             self.refldat.thetaend_i = idy
@@ -366,7 +366,7 @@ class FormWidget(Wid.QWidget):
         except:
             warn = Wid.QMessageBox()
             warn.setWindowTitle('Invalid data')
-            ico = os.path.join(os.path.dirname(__file__), "laika.png")
+            ico = os.path.join(os.path.dirname(__file__), "icons/laika.png")
             pixmap = QPixmap(ico).scaledToHeight(64, 
                                   Qt.SmoothTransformation)
             warn.setIconPixmap(pixmap)
@@ -460,7 +460,6 @@ class FormWidget(Wid.QWidget):
            self.dialogM.setWindowModality(Qt.ApplicationModal)
            self.dialogM.exec_()
 
-
     def smoothxrr(self, cutoff, fraclowess):
         # cutoff es lo que sale de la LineEdit box, sin modificar.
         # fraclowess viene de un DoubleSpinBox. Siempre es un float.
@@ -482,7 +481,8 @@ class FormWidget(Wid.QWidget):
             end = self.refldat.thetaend_i
             print('cutoff is None')
 
-
+        self.infolabel3.setText("Lowess: %.2f" % fraclowess)
+        self.infolabel2.setText("Number of peaks: %d" % len(peak_list))
         self.graphxr.updatePlot([self.refldat.x[start:end], self.refldat.counts[start:end]],
                                 [self.refldat.x[start:end], lowess[:,1]],
                                 [xpeaks, peak_list])
@@ -499,11 +499,11 @@ class FormWidget(Wid.QWidget):
         thicknm = thick * 0.1
 
         if abs(thetacrit_diff1) < 10:
-            pic = "c-ok.png"
+            pic = "icons/c-ok.png"
         elif 10 < abs(thetacrit_diff1) < 30:
-            pic = "c-med.png"
+            pic = "icons/c-med.png"
         else:
-            pic = "c-bad.png"
+            pic = "icons/c-bad.png"
             
         message = Wid.QMessageBox()
         ico = os.path.join(os.path.dirname(__file__), pic)
@@ -525,12 +525,41 @@ class FormWidget(Wid.QWidget):
         message.setStandardButtons(Wid.QMessageBox.Ok)
         message.buttonClicked.connect(lambda: self.updateSlopeLabel(slope1, intercept1,
                                                                     r_value1,
-                                                                    thetacritexp_1))
+                                                                    thetacrit_exp1))
         message.exec_()
 
-    def updateSlopeLabel(self, slope1, intercept1, r_value1, thetacritexp_1):
+    def updateSlopeLabel(self, slope1, intercept1, r_value1, thetacrit_exp1):
         self.infolabel4.setText("Slope: %.4E" % slope1)
         self.infolabel5.setText("Intercept: %.4E" % intercept1)
         self.infolabel6.setText("R-Squared: %f" % r_value1)
         self.thetacrit2lab.setText('2\u03B8<sub>c</sub> (intercept) = %f' % thetacrit_exp1)
+
+    def editPeaks(self):
+        self.dialogT = Wid.QDialog()
+        self.dialogT.setWindowTitle("Edit peak position")
+        frame = Wid.QVBoxLayout()
+        table = Wid.QTableWidget()
+        table.setColumnCount(2)
+        table.setRowCount(len(self.refldat.peaks_index_zero))
         
+        for i, key in enumerate(self.refldat.peaks_index_zero):
+            # i = 0,1...
+            # key = each peak position.
+            a = "%.3f" % self.refldat.x[key]
+            table.setItem(i, 0, Wid.QTableWidgetItem(str(i)))
+            table.setItem(i, 1, Wid.QTableWidgetItem(a))
+            
+        accept = Wid.QPushButton("Update", self.dialogT)
+        close = Wid.QPushButton("Close", self.dialogT)
+        # Signals
+        #accept.clicked.connect(lambda: self.returnSize(width, height))
+        close.clicked.connect(self.dialogT.close)
+        b = Wid.QHBoxLayout()
+        b.addWidget(accept)
+        b.addWidget(close)
+        frame.addWidget(table)
+        frame.addLayout(b)
+        self.dialogT.setLayout(frame)
+        self.dialogT.setFixedSize(300, 300)
+        self.dialogT.setWindowModality(Qt.ApplicationModal)
+        self.dialogT.exec_()
